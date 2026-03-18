@@ -35,15 +35,19 @@ let compile = (data) => {
 
 let func = (args) => {
 	let fn
-console.log(args)
+	// console.log("args=")
+	// console.log(args)
     if (Array.isArray(args[0])) {
+
         fn = args.map(arg).join('.')
+		// console.log("fn = ")
+				// console.log(fn)
     }
 
 	else fn= args[0] + "(" +
         args.slice(1).reduce((str, argument) => str + arg(argument) + ",", "") +
     ")";
-	console.log(args,fn)
+	// console.log(args,fn)
 	return fn
 };
 
@@ -156,6 +160,7 @@ let getcurrentref = () => {
 	let ref = getref(refaddress, codeData);
 	return [ref, refindex];
 };
+
 let getref = (address, arr) => {
 	let copy = [...address];
 	let index = copy.shift();
@@ -210,14 +215,15 @@ cursor.goUp = () => {
 let keys = {
 
 //srcs
-"AI": ["modulateScale", ["src", "o0"], 0.1],
 "AH": ["modulate", ["src", "o0"], 0.1],
+"AI": ["modulateScale", ["src", "o0"], 0.1],
 "AG": ["modulateRepeat", ["src", "o0"],1,1],
 "AF": ["modulateScrollX", ["src", "o0"],0.1,0.1],
 "AE": ["modulateScrollY", ["src	", "o0"],0.1,0.1],
 "AD": ["modulateKaleid", ["src", "o0"], 4],
 "AC": ["modulatePixelate", ["src", "o0"], 99,99],
 
+//to do: hyper hydra blend modes
 //blends
 "BI": ["blend", ["src", "o0"],0.9],
 "BH": ["mult", ["src", "o0"], 1],
@@ -225,6 +231,7 @@ let keys = {
 "BF": ["sub", ["src", "o0"], 0.5],
 "BE": ["add", ["src", "o0"], 0.5],
 
+//to do: separate by transforms or color
 //effects
 "CI": ["colorama", -0.5],
 "CH": ["scale", 1, 1],
@@ -263,7 +270,8 @@ let keys = {
 "J": ["system", "deleteline"]
 
 };
-
+//to do:
+// fix rules so i can add a modulate or something after an existing modulate
 
 /*"DI": ["number" + 0.1
 "DG - (number) - 0.1
@@ -344,7 +352,7 @@ let port = undefined;
 let cmd = "";
 let initialize_port = async () => {
 	port = await navigator.serial.requestPort();
-	console.log(port);
+	// console.log(port);
 	await port.open({ baudRate: 9600 });
 
 	const textDecoder = new TextDecoderStream();
@@ -393,7 +401,7 @@ let runCmd = (keystroke) => {
 		cursor.next((a) => (a.push(1), a));
 		updateUI();
 		}
-		else console.log(cur[curI])
+		// else console.log(cur[curI])
 	}
 
 
@@ -500,8 +508,6 @@ let runCmd = (keystroke) => {
 		}
 		}
 		}
-
-		
 
 		if (sel_type === "src"){
 			if (cmd_type === "src")
@@ -725,7 +731,7 @@ document.onkeydown = async (e) => {
 
 function update_page() {
 	let code = compile(codeData);
-	 console.log(code, codeData);
+	//  console.log(code, codeData);
 	frame.srcdoc = `
 		<style>
 	* {
