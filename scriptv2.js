@@ -7,13 +7,38 @@ const interfaceEl = document.querySelector("#interface");
 export const round = (n, r) => Math.ceil(n / r) * r;
 
 let code = `
-	noise(3,0.1).out()
+	src(s0).linearBurn(src(s0)).out()
 `;
 
-let codeData = [
-	["noise",4,0.01],
-	["out", "o0"]
+// let codeData = [
+// 	["src", "s0"],
+//     ["linearBurn","s0"],
+// 	["out", "o0"]
+// ];
+
+let currentO = 0;
+
+let allO = [
+
+    [
+        ["src", "s0"],
+        ["out", "o0"]
+    ],
+
+    [
+        ["src","o0"],
+        ["out","o1"]
+    ],
+
+    [
+        ["src","o1"],
+        ["out","o2"]
+    ]
+
 ];
+
+let codeData = allO[currentO];
+
 
 let d = localStorage.getItem("save");
 
@@ -31,13 +56,33 @@ function setup_iframe(){
         height: 100vh;
         width: 100vw;
     }
+    canvas{
+    display:block;
+    width: 100%;
+    height: 100%;}
+    
         </style>
 
         <body>
+        <canvas id="canvas"></canvas>
         </body>
         <script src="./lib/hydra.js"></script>
+
         <script>
-            const h = new Hydra().synth;
+        const canvas = document.getElementById('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+            const h = new Hydra({
+            canvas:document.getElementById('canvas'),
+            autoLoop: true
+            });
+
+            Object.assign(window,h.synth);
+            window.h = h;
+            </script>
+
+        <script src="./lib/hydra-blend.js"></script>
+<script>
             window.executeCode = function(codeString){
             eval(codeString);
             }
@@ -86,20 +131,22 @@ let compile_chain = (chain) => {
 
 
 
-const src = new Set(["noise","osc","shape","gradient","voronoi", "solid", "s0", "o0", "out", "src"]);
-const color_effect = new Set(["colorama","hue","thresh","luma","saturate","contrast","brightness"]);
+const src = new Set(["noise","osc","shape","gradient","voronoi", "solid", "s0", "o0",  "src"]);
+const out = new Set(["out"]);
+const color_effect = new Set(["colorama","hue","thresh","luma","saturate","contrast","brightness","scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
 const transform_effect = new Set(["scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
-const modulate = new Set(["modulate", "modulateScale", "modulateRepeat", "modulateRepeat", "modulateKaleid", "modulateScrollY", "modulateScrollX"])
+const modulate = new Set(["modulate", "modulateScale", "modulateRepeat", "modulateRepeat", "modulateKaleid", "modulateScrollY", "modulateScrollX","diff", "blend", "mult", "add", "sub"])
 const blend = new Set(["diff", "blend", "mult", "add", "sub"])
 const number = new Set(["number"]);
 const system = new Set(["system"]);
 
 let itemtype = (item) => {
 	if (typeof item === "number") return "number"; 
+    if (out.has(item[0])) return "out";
 	if (Array.isArray(item[0])) return "src";   // ← chained src
     if (src.has(item[0])) return "src";
-    if (color_effect.has(item[0])) return "color_effect";
-    if (transform_effect.has(item[0])) return "transform_effect";
+    if (color_effect.has(item[0])) return "effect";
+    if (transform_effect.has(item[0])) return "effect";
     if (modulate.has(item[0])) return "modulate";
     if (blend.has(item[0])) return "blend";
 	if (number.has(item[0])) return "number"; 
@@ -113,13 +160,18 @@ let hydra_code = compile_chain(codeData);
 
 
 function update_page() {
-    let code = compile_chain(codeData);
-    console.log(code);
-    frame.contentWindow.executeCode(code);
+    let initCode = `
+    s0.initCam(0);`
+    let code0 = compile_chain(allO[0]);
+    let code1 = compile_chain(allO[1]);
+    let code2 = compile_chain(allO[2]);
+    let codeString = initCode + "\n" + code0 + "\n" + code1 + "\n" + code2 + "\n" + "render(o2);"
+    // console.log(code);
+    frame.contentWindow.executeCode(codeString);
     updateUI(codeData);
     // console.log(code);
-    localStorage.setItem("save", JSON.stringify(codeData));
-    codeEl.innerHTML = `<pre>${code}</pre>`;
+    localStorage.setItem("save", JSON.stringify(allO));
+    codeEl.innerHTML = `<pre>${codeString}</pre>`;
 }
 
 
@@ -232,9 +284,16 @@ cursor.goNext = (out = false) => {
 };
 cursor.goPrev = (out = false) => {
     let [_, refindex] = getcurrentref();
+    let isNested;
+    if (cursor.value().length > 1){
+        isNested = 1;
+    }
 
+    else  {
+        isNested = 0;
+    }
 
-    if (refindex > 0) {
+    if (refindex > isNested) {
         cursor.next((e) => (e[e.length - 1] -= 1, e));
 
         let [ref, refindex] = getcurrentref();
@@ -257,12 +316,22 @@ cursor.goUp = () => {
     if (cursor.value().length > 1) cursor.next((e) => (e.pop(), e));
 };
 
+let randomize_param = (param) => {
+
+    if (Array.isArray(param) && param.length === 2 &&
+    typeof param[0] === 'number' && typeof param[1] === 'number'){
+        return Math.random()*(param[1]-param[0] + param[0]);
+    }
+    
+    return param
+}
+
 let keys = {
 
 //srcs
 "AH": ["modulate", ["src", "o0"], 0.1],
 "AI": ["modulateScale", ["src", "o0"], 0.1],
-"AG": ["modulateRepeat", ["src", "o0"],1,1],
+"AG": ["modulateRepeat", ["src", "o0"],2,2],
 "AF": ["modulateScrollX", ["src", "o0"],0.1,0.1],
 "AE": ["modulateScrollY", ["src	", "o0"],0.1,0.1],
 "AD": ["modulateKaleid", ["src", "o0"], 4],
@@ -278,9 +347,9 @@ let keys = {
 
 //to do: separate by transforms or color
 //effects
-"CI": ["colorama", -0.5],
-"CH": ["scale", 1, 1],
-"CG": ["repeat", 1, 1],
+"CI": ["colorama", -0.1],
+"CH": ["scale", 1.1, 1.1],
+"KG": ["repeat", 2, 2],
 "KI": ["rotate", 3,0.1],
 "CF": ["hue", 0.5],
 "CE": ["thresh", 0.5],
@@ -295,6 +364,7 @@ let keys = {
 "LH": ["osc", 1, 0.1, 1],
 "LG": ["shape", 4, 0.1, 0.01],
 "LF": ["src", "o0"],
+"LA": ["src", "s0"],
 /*"LE": ["src(o1)"],
 "LD": ["src(o2)"],
 "LC": ["src(s0)"],
@@ -312,7 +382,7 @@ let keys = {
 "HG": ["number", 10],
 "HK": ["number", -10],
 
-"J": ["system", "deleteline"]
+"L": ["system", "deleteline"]
 
 };
 //to do:
@@ -395,31 +465,70 @@ E - delete
 let buffer;
 let port = undefined;
 let cmd = "";
+let port_connected = false;
+
 let initialize_port = async () => {
+
+    try{
+
     port = await navigator.serial.requestPort();
     // console.log(port);
     await port.open({ baudRate: 9600 });
+    port_connected = true;
 
     const textDecoder = new TextDecoderStream();
     const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
     const reader = textDecoder.readable.getReader();
 
     // Listen to data coming from the serial device.
-    while (true) {
+    while (port_connected) {
+
+        try{
         const { value, done } = await reader.read();
         if (done) {
             // Allow the serial port to be closed later.
             reader.releaseLock();
+            port_connected = false;
             break;
         }
         value.split("").forEach((e) => {
             if (e == "\n") {
+                try {
                 runCmd(cmd);
+                } catch (error){
+                    
+                }
                 cmd = "";
             } else cmd += e;
         });
+
+        } catch (readError) {
+            port_connected = false;
+            break;
+        }
+    }
+
+    }
+    catch (error) {
+        port_connected = false;
+    }
+    finally {
+        if (port){
+            try {
+                await port.close();
+            }
+            catch (e) {
+                
+            }
+        }
     }
 };
+
+let ensure_port_connected = async () => {
+    if (!port_connected){
+        await initialize_port();
+    }
+}
 
 let runCmd = (keystroke) => {
     // console.log(keystroke);
@@ -429,29 +538,50 @@ let runCmd = (keystroke) => {
     let [cur, curI] = getcurrentref();
 
     //if (cmd.KEY2){
-    if (cmd.KEY == "I") {
+    if (cmd.KEY == "H") {
     cursor.goNext();
     }
 
-    if (cmd.KEY == "H"){
+    if (cmd.KEY == "I"){
         cursor.goPrev();
     }
 
-    if (cmd.KEY == "B"){
+    if (cmd.KEY == "K"){
         cursor.goUp();
     }
     
-    if (cmd.KEY == "E"){
+    if (cmd.KEY == "J"){
         if (Array.isArray(cur[curI])) {
+        const hasnest = cur[curI].slice(1).some(param => Array.isArray(param));
+        if (hasnest){
         cursor.next((a) => (a.push(1), a));
         updateUI();
         }
+    }
         // else console.log(cur[curI])
     }
 
 
-    if (cmd.KEY == "G"){
+    if (cmd.KEY == "D"){
             update_page();
+    }
+    
+   else if (cmd.KEY == "C"){
+        currentO = (currentO + 1) % 3;
+        codeData = allO[currentO];
+        cursor.next(()=>[0]);
+        update_page();
+    }
+
+    else if (cmd.KEY == "G"){
+        currentO = (currentO - 1 + 3) % 3;
+        codeData = allO[currentO];
+        cursor.next(()=>[0]);
+        update_page();
+    }
+
+    else {
+        updateUI();
     }
 
     
@@ -543,7 +673,7 @@ let runCmd = (keystroke) => {
 
     // if(cursor.value().length == 1){
         if (cmd_type === "system"){
-            if (sel_type !== "src"){
+            if (sel_type !== "src" && sel_type !=="number" && sel_type !== "out"){
             if (Array.isArray(cur)) {
                 if (itemtype(item) !== "src" ){
                 buffer = cur[curI];
@@ -553,9 +683,6 @@ let runCmd = (keystroke) => {
         }
         }
         }
-
-
-
 
         if (sel_type === "src"){
             if (cmd_type === "src")
@@ -691,13 +818,25 @@ let runCmd = (keystroke) => {
             //do nothing i guess
             }
         }	
+
+        else if (sel_type === "out"){
+            if (cmd_type === "src"){
+
+            }
+            else {
+
+            }
+        }
     }
 
 };
 
 document.onkeydown = async (e) => {
     if (e.key == "Q") {
-        if (!port) initialize_port();
+        if (!port_connected) {
+             initialize_port();
+        }
+
     }
     if (e.key == "ArrowDown" && !e.shiftKey) {
         // have strategy functions for what next means in different contexts

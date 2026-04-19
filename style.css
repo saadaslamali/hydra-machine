@@ -13,10 +13,10 @@ body {
 
 
 .fn {
-	background-color: rgb(255, 255, 255);
+	background-color: rgb(255, 255, 255,0.5);
 	font-family: monospace;
 	font-weight: bold;
-	padding: .6em;
+	padding: .5em;
 	display: inline-block;
 	
 	/* border-left: 1px solid black; */
@@ -38,8 +38,8 @@ align-items: flex-start;
 }
 
 body {
-	display: grid;
-	grid-template-columns: 30vw 70vw;
+	display: flex;
+	/* grid-template-columns: 30vw 70vw; */
 }
 
 body>* {
