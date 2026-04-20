@@ -33,9 +33,17 @@ align-items: flex-start;
 }
 
 
-*[selected='true'] {
+body.out0 *[selected='true'] {
 	background-color: rgb(105, 227, 240);
 }
+
+body.out1 *[selected='true'] {
+    background:rgb(240, 105, 105);
+}
+body.out2 *[selected='true'] {
+    background:rgb(188, 240, 105);
+}
+
 
 body {
 	display: flex;
@@ -60,15 +68,24 @@ iframe {
     /* content: ','; */
     /* margin-right: 0.3em; */
 }
-
+/* 
 .gap {
     height: 4px;
     margin: 2px 0;
 	    width: 10%;
-}
-.gap[selected="true"] {
+/* }
+body.out0 .gap[selected="true"] {
+
     background:rgb(105, 227, 240);
 }
+body.out1 .gap[selected="true"] {
+
+}
+
+body.out2 .gap[selected="true"] {
+
+}
+ */ */
 
 .subchain {
     display: inline-flex;

@@ -7,7 +7,7 @@ const interfaceEl = document.querySelector("#interface");
 export const round = (n, r) => Math.ceil(n / r) * r;
 
 let code = `
-	src(s0).linearBurn(src(s0)).out()
+	src(s0).out()
 `;
 
 // let codeData = [
@@ -344,6 +344,12 @@ let keys = {
 "BG": ["diff", ["src", "o0"],1],
 "BF": ["sub", ["src", "o0"], 0.5],
 "BE": ["add", ["src", "o0"], 0.5],
+"BA": ["linearBurn", ["src","o0"],0.5],
+"BC":["divide", ["src","o0"],0.5],
+/*"BD":
+"BJ":
+"BK":
+"BL":*/
 
 //to do: separate by transforms or color
 //effects
@@ -365,11 +371,11 @@ let keys = {
 "LG": ["shape", 4, 0.1, 0.01],
 "LF": ["src", "o0"],
 "LA": ["src", "s0"],
-/*"LE": ["src(o1)"],
-"LD": ["src(o2)"],
-"LC": ["src(s0)"],
-"LB": ["src(s1)"],
-"LA": ["src(s2)"],*/
+"LE": ["src","o1"],
+"LD": ["src","o2"],
+"LC": ["src","s0"],
+"LB": ["src","s1"],
+"LA": ["src","s2"],
 
 //numbers
 "DI": ["number", 0.1],
@@ -568,16 +574,21 @@ let runCmd = (keystroke) => {
     
    else if (cmd.KEY == "C"){
         currentO = (currentO + 1) % 3;
+        // document.documentElement.style.setProperty('--currentO', `'${currentO}'`);
+        document.body.classList.remove('out0','out1','out2');
+        document.body.classList.add(`out${currentO}`);
         codeData = allO[currentO];
         cursor.next(()=>[0]);
-        update_page();
+        updateUI();
     }
 
     else if (cmd.KEY == "G"){
         currentO = (currentO - 1 + 3) % 3;
+        document.body.classList.remove('out0','out1','out2');
+        document.body.classList.add(`out${currentO}`);
         codeData = allO[currentO];
         cursor.next(()=>[0]);
-        update_page();
+        updateUI();
     }
 
     else {
@@ -672,6 +683,7 @@ let runCmd = (keystroke) => {
     let cmd_type = itemtype(item);
 
     // if(cursor.value().length == 1){
+
         if (cmd_type === "system"){
             if (sel_type !== "src" && sel_type !=="number" && sel_type !== "out"){
             if (Array.isArray(cur)) {
@@ -683,6 +695,9 @@ let runCmd = (keystroke) => {
         }
         }
         }
+
+        
+
 
         if (sel_type === "src"){
             if (cmd_type === "src")
@@ -796,6 +811,11 @@ let runCmd = (keystroke) => {
 
 
         else if (sel_type === "number"){
+
+    //    if (sel_type === "number"){
+            number_change();
+      //  }
+           /* 
             if (cmd_type === "src")
             {	
                 //do nothing
@@ -813,10 +833,10 @@ let runCmd = (keystroke) => {
                 //apply the number change to it
             [cur, curI] = getcurrentref();   
             number_change();
-            }
-            else {
-            //do nothing i guess
-            }
+            }*/
+        // else {
+        // //do nothing i guess
+        // }
         }	
 
         else if (sel_type === "out"){
