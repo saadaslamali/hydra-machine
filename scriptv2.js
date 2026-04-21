@@ -176,6 +176,7 @@ function update_page() {
 
 
 setup_iframe();
+document.body.classList.add(`out${currentO}`);
 setTimeout(() => { update_page(); },500)
 // update_page();
 
@@ -193,6 +194,11 @@ function updateUI(data = codeData) {
 
 }
 
+let format_number = (n) => {
+    if (Number.isInteger(n)) return String(n);
+    return parseFloat(n.toPrecision(12)).toString();
+}
+
 let defaultrenderer = (el, i, a, prefix = "") => {
     // console.log("Rendering:", el);
     if (Array.isArray(el)){
@@ -207,7 +213,7 @@ let defaultrenderer = (el, i, a, prefix = "") => {
     // return arrayui(el, a.concat([i]));
     else if (typeof el == "string") return ["span.string", selected(a, i), prefix + el];
     else if (typeof el == "number") {
-        return ["span.number", selected(a, i), (prefix + el + "")];
+        return ["span.number", selected(a, i), (prefix + format_number(el) + "")];
     } else console.error(el);
 };
 
@@ -351,7 +357,7 @@ cursor.goPrev = (out = false) => {
 cursor.goUp = () => {
     if (cursor.value().length > 1) cursor.next((e) => (e.pop(), e));
 };
-
+/*
 let randomize_param = (param) => {
 
     if (Array.isArray(param) && param.length === 2 &&
@@ -361,19 +367,18 @@ let randomize_param = (param) => {
     
     return param
 }
-
+*/
 let keys = {
 
 //srcs
-"AH": ["modulate", ["src", "o0"], 0.1],
-"AI": ["modulateScale", ["src", "o0"], 0.1],
-"AG": ["modulateRepeat", ["src", "o0"],2,2],
+"AI": ["modulate", ["src", "o0"], 0.1],
+"AH": ["modulateScale", ["src", "o0"], 0.1],
+"AD": ["modulateRepeat", ["src", "o0"],2,2],
 "AF": ["modulateScrollX", ["src", "o0"],0.1,0.1],
 "AE": ["modulateScrollY", ["src	", "o0"],0.1,0.1],
-"AD": ["modulateKaleid", ["src", "o0"], 4],
-"AC": ["modulatePixelate", ["src", "o0"], 99,99],
+"AG": ["modulateKaleid", ["src", "o0"], 4],
+"AJ": ["modulatePixelate", ["src", "o0"], 99,99],
 
-//to do: hyper hydra blend modes
 //blends
 "BI": ["blend", ["src", "o0"],0.9],
 "BH": ["mult", ["src", "o0"], 1],
@@ -532,7 +537,8 @@ let runCmd = (keystroke) => {
     }
     
    else if (cmd.KEY == "C"){
-        currentO = (currentO + 1) % 3;
+            currentO = (currentO - 1 + 3) % 3;
+
         // document.documentElement.style.setProperty('--currentO', `'${currentO}'`);
         document.body.classList.remove('out0','out1','out2');
         document.body.classList.add(`out${currentO}`);
@@ -543,7 +549,8 @@ let runCmd = (keystroke) => {
     }
 
     else if (cmd.KEY == "G"){
-        currentO = (currentO - 1 + 3) % 3;
+                currentO = (currentO + 1) % 3;
+
         document.body.classList.remove('out0','out1','out2');
         document.body.classList.add(`out${currentO}`);
         codeData = allO[currentO];
