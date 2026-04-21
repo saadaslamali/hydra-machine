@@ -82,7 +82,7 @@ function setup_iframe(){
             </script>
 // loadScript("https://cdn.jsdelivr.net/gh/geikha/hyper-hydra@latest/hydra-wrap.js")
         // <script src="./lib/hydra-blend.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/geikha/hyper-hydra@latest/hydra-wrap.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/geikha/hyper-hydra@latest/hydra-blend.js"></script>
 
         <script>
             window.executeCode = function(codeString){
@@ -163,7 +163,9 @@ let hydra_code = compile_chain(codeData);
 
 function update_page() {
     let initCode = `
-    s0.initCam(0);`
+    s0.initCam(0);
+    s1.initCam(1);
+    setResolution(1920,1080);`
     let code0 = compile_chain(allO[0]);
     let code1 = compile_chain(allO[1]);
     let code2 = compile_chain(allO[2]);
@@ -360,7 +362,7 @@ cursor.goUp = () => {
     if (cursor.value().length > 1) cursor.next((e) => (e.pop(), e));
 };
 /*
-let randomize_param = (param) => {
+let random_param = (param) => {
 
     if (Array.isArray(param) && param.length === 2 &&
     typeof param[0] === 'number' && typeof param[1] === 'number'){
@@ -373,45 +375,45 @@ let randomize_param = (param) => {
 let keys = {
 
 //srcs
-"AI": ["modulate", ["src", "o0"], 0.1],
-"AH": ["modulateScale", ["src", "o0"], 0.1],
-"AD": ["modulateRepeat", ["src", "o0"],2,2],
-"AF": ["modulateScrollX", ["src", "o0"],0.1,0.1],
-"AE": ["modulateScrollY", ["src	", "o0"],0.1,0.1],
-"AG": ["modulateKaleid", ["src", "o0"], 4],
-"AJ": ["modulatePixelate", ["src", "o0"], 99,99],
+"AI": ["modulate", ["src", "o0"],[-1,1]],
+"AH": ["modulateScale", ["src", "o0"], [-1,1]],
+"AD": ["modulateRepeat", ["src", "o0"],[-3,3]],
+"AF": ["modulateScrollX", ["src", "o0"],[-1,1],[-1,1]],
+"AE": ["modulateScrollY", ["src	", "o0"],[-1,1],[-1,1]],
+"AG": ["modulateKaleid", ["src", "o0"], [0,20]],
+"AJ": ["modulatePixelate", ["src", "o0"], [-100,100],[-100,100]],
 
 //blends
-"BI": ["blend", ["src", "o0"],0.9],
-"BH": ["mult", ["src", "o0"], 1],
-"BG": ["diff", ["src", "o0"],1],
-"BF": ["sub", ["src", "o0"], 0.5],
-"BE": ["add", ["src", "o0"], 0.5],
-"BA": ["linearBurn", ["src","o0"],0.5],
-"BC":["colorBurn", ["src","o0"],0.5],
-"BD":["colorDodge", ["src","o0"],0.5],
-"BJ":["glow", ["src","o0"],0.5],
-"BK":["vividLight", ["src","o0"],0.5],
-"BL":["divide", ["src","o0"],0.5],
+"BI": ["blend", ["src", "o0"],[0.5,0.95]],
+"BH": ["mult", ["src", "o0"], [0,1]],
+"BG": ["diff", ["src", "o0"],[0,1]],
+"BF": ["sub", ["src", "o0"], [0,1]],
+"BE": ["add", ["src", "o0"], [0,1]],
+"BA": ["linearBurn", ["src","o0"],[0,1]],
+"BC":["colorBurn", ["src","o0"],[0,1]],
+"BD":["colorDodge", ["src","o0"],[0,1]],
+"BJ":["glow", ["src","o0"],[0,1]],
+"BK":["vividLight", ["src","o0"],[0,1]],
+"BL":["divide", ["src","o0"],[0,1]],
 
 //to do: separate by transforms or color
 //effects
-"CI": ["colorama", -0.1],
-"CH": ["scale", 1.1, 1.1],
-"KG": ["repeat", 2, 2],
-"KI": ["rotate", 3,0.1],
-"CF": ["hue", 0.5],
-"CE": ["thresh", 0.5],
-"CD": ["luma", 0.5],
-"CJ": ["saturate", 1.5],
-"CK": ["contrast", 1.5],
-"CL": ["brightness", 0.1],
+"CI": ["colorama", [-1,1]],
+"CH": ["scale", [-1.5,1.5], [-1.5,1.5]],
+"KG": ["repeat", [0,4],[0,4]],
+"KI": ["rotate", [0,0.1],[-0.5,0.5]],
+"CF": ["hue", [0,1]],
+"CE": ["thresh", [0.2,0.8]],
+"CD": ["luma", [0.2,0.8]],
+"CJ": ["saturate", [1,1.5]],
+"CK": ["contrast", [1,1.5]],
+"CL": ["brightness", [0,0.1]],
 
 
 //srcs
-"LI":["noise", 4,0.1],
-"LH": ["osc", 1, 0.1, 1],
-"LG": ["shape", 4, 0.1, 0.01],
+"LI":["noise", [0,7],[-0.1,0.1]],
+"LH": ["osc", [0,2], [-0.25,0.25], [-10,10]],
+"LG": ["shape", [0,20], [0.1,0.4], [0.01,0.1]],
 "LF": ["src", "o2"],
 "LA": ["src", "s0"],
 "LE": ["src","o1"],
@@ -433,6 +435,28 @@ let keys = {
 "L": ["system", "deleteline"]
 
 };
+
+const random_range = (min,max) => Math.round((Math.random() * (max - min) + min)*100)/100;
+
+const random_param = (item) => {
+    if (item[0] === "number"){
+        return [...item];
+    }
+    const randomized = [...item];
+    for (let i=1; i<randomized.length; i++){
+        const param = randomized[i];
+
+        if (Array.isArray(param) && param.length === 2 && typeof param[0] === 'number' && typeof param[1] === 'number' &&
+        !Array.isArray(param[0])){
+            randomized[i] = random_range(param[0],param[1]);
+        }
+        else if (Array.isArray(param)){
+            randomized[i] = random_param(param);
+        }
+    }
+    return randomized;
+
+}
 
 let buffer;
 let port = undefined;
@@ -624,20 +648,8 @@ let runCmd = (keystroke) => {
 
     }
 
-
-//to fix:
-//nested functions
-//if i have a nested function inside a modulate, and have the modulate highlighted and send a different modulate cmd...
-//... then it replaces the nested function (first parameter) with the default
-//instead, we want it to keep the parameters exactly as is, and just change the modulate with the one i sent in the command
-
-//it is adding commas for some reason and messes up the hydra code format/law inside the nested functions
-
-
-// let [cur, curI] = getcurrentref();
-
     if(item){
-    // let function_structure = cursor.length();
+
     let sel_type = itemtype(cur[curI]);
     let cmd_type = itemtype(item);
 
@@ -661,23 +673,23 @@ let runCmd = (keystroke) => {
         if (sel_type === "src"){
             if (cmd_type === "src")
             {	
-                cur[curI] = [...item];
+                cur[curI] = random_param(item);
                 updateUI();
 
                 //replace the existing src with this new one
             }
             else if (cmd_type === "modulate" || cmd_type === "effect" ){
                 if (cursor.value().length === 1){
-                    codeData.splice(curI + 1, 0, [...item]);
+                    codeData.splice(curI + 1, 0, random_param(item));
                     updateUI;
                 }
               
                 else {
                     if (Array.isArray(cur[curI][0])){
-                        cur[curI].push([...item]);
+                        cur[curI].push(random_param(item));
                     }
                     else {
-                        cur[curI] = [[...cur[curI]],[...item]];
+                        cur[curI] = [[...cur[curI]],random_param(item)];
                     }
                                 cursor.next(a => [...a, 0]);
 
@@ -710,7 +722,7 @@ let runCmd = (keystroke) => {
             if (cmd_type === "src")
             {
                 let cmd_mod = [...cur[curI]];
-                cmd_mod[1] = [...item];
+                cmd_mod[1] = random_param(item);
                 codeData.splice(curI + 1, 0, cmd_mod);
                 updateUI();
                 //duplicate the sel_type modulate
@@ -719,14 +731,14 @@ let runCmd = (keystroke) => {
 
             else if (cmd_type === "modulate"){
                 //replace the sel_type modulate with the cmd_type modulate
-                cur[curI] = [...item];
+                cur[curI] =random_param(item);
                 updateUI();
             }
 
             else if (cmd_type === "effect"){
                 //add the default cmd_type effect to the next line
 
-            codeData.splice(curI + 1, 0, [...item]);
+            codeData.splice(curI + 1, 0, random_param(item));
             updateUI();
             }
 
@@ -754,14 +766,14 @@ let runCmd = (keystroke) => {
             else if (cmd_type === "modulate"){
                 //add default cmd_type modulate to the next line
 
-            codeData.splice(curI + 1, 0, [...item]);
+            codeData.splice(curI + 1, 0, random_param(item));
             updateUI();
             }
 
             else if (cmd_type === "effect"){
                 //add the default cmd_type effect to the next line
 
-            codeData.splice(curI + 1, 0, [...item]);
+            codeData.splice(curI + 1, 0, random_param(item));
             updateUI();
             }
 
@@ -872,7 +884,7 @@ document.onkeydown = async (e) => {
     if (Array.isArray(cur)) {
         Object.entries(keys).forEach(([key, item]) => {
             if (e.key == key) {
-                cur.splice(curI + 1, 0, [...item]);
+                cur.splice(curI + 1, 0, (random_param(item)));
                 updateUI();
             }
         });
