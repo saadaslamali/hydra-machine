@@ -80,9 +80,11 @@ function setup_iframe(){
             Object.assign(window,h.synth);
             window.h = h;
             </script>
+// loadScript("https://cdn.jsdelivr.net/gh/geikha/hyper-hydra@latest/hydra-wrap.js")
+        // <script src="./lib/hydra-blend.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/geikha/hyper-hydra@latest/hydra-wrap.js"></script>
 
-        <script src="./lib/hydra-blend.js"></script>
-<script>
+        <script>
             window.executeCode = function(codeString){
             eval(codeString);
             }
