@@ -15,7 +15,7 @@ let code = `
 //     ["linearBurn","s0"],
 // 	["out", "o0"]
 // ];
-
+//to do: randomness
 let currentO = 0;
 
 let allO = [
@@ -516,14 +516,16 @@ let runCmd = (keystroke) => {
         cursor.goPrev();
     }
 
-    if (cmd.KEY == "K"){
+    if (cmd.KEY == "B"){
         cursor.goUp();
     }
     
     if (cmd.KEY == "J"){
         if (Array.isArray(cur[curI])) {
-        const hasnest = cur[curI].slice(1).some(param => Array.isArray(param));
-        if (hasnest){
+        // const hasnest = cur[curI].slice(1).some(param => Array.isArray(param));
+        const hasparams = cur[curI].length > 1;
+        const srcorout = cur[curI][0] === "src" || cur[curI][0]  === "out";
+        if (hasparams && !srcorout){
         cursor.next((a) => (a.push(1), a));
         updateUI();
         }
@@ -532,11 +534,11 @@ let runCmd = (keystroke) => {
     }
 
 
-    if (cmd.KEY == "D"){
+    if (cmd.KEY == "D" || cmd.KEY == "C"){
             update_page();
     }
     
-   else if (cmd.KEY == "C"){
+   else if (cmd.KEY == "A"){
             currentO = (currentO - 1 + 3) % 3;
 
         // document.documentElement.style.setProperty('--currentO', `'${currentO}'`);
@@ -684,6 +686,9 @@ let runCmd = (keystroke) => {
             }
             else if (cmd_type === "number"){
                 //go inside the src and highlight the first parameter (and apply that number change +.1 or whatever)
+
+                if (cur[curI][0] !== "src" && cur[curI][0] !== "out"){
+
                 if (cur[curI].length > 1) {
             cursor.next(a => [...a, 1]);       
             [cur, curI] = getcurrentref();   
@@ -693,6 +698,9 @@ let runCmd = (keystroke) => {
             }
             else {
             //do nothing i guess
+            }}
+            else {
+                
             }
         }
 
