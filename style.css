@@ -16,8 +16,10 @@ body {
 	background-color: rgb(255, 255, 255,0.5);
 	font-family: monospace;
 	font-weight: bold;
-	padding: .5em;
-	display: inline-block;
+	padding: .25em;
+	display: inline-flex;
+	/* overflow: visible; */
+	/* white-space: normal; */
 	
 	/* border-left: 1px solid black; */
 }

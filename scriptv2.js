@@ -131,9 +131,9 @@ let compile_chain = (chain) => {
 
 
 
-const src = new Set(["noise","osc","shape","gradient","voronoi", "solid", "s0", "o0",  "src"]);
+const src = new Set(["noise","osc","shape","gradient","voronoi", "solid", "s0", "o0", "o1","o2","s1" , "src"]);
 const out = new Set(["out"]);
-const color_effect = new Set(["colorama","hue","thresh","luma","saturate","contrast","brightness","scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
+const color_effect = new Set(["colorama","invert","hue","thresh","luma","saturate","contrast","brightness","scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
 const transform_effect = new Set(["scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
 const modulate = new Set(["modulate", "modulateScale", "modulateRepeat", "modulateRepeat", "modulateKaleid", "modulateScrollY", "modulateScrollX","diff", "blend", "mult", "add", "sub"])
 const blend = new Set(["diff", "blend", "mult", "add", "sub"])
@@ -188,10 +188,23 @@ function updateUI(data = codeData) {
 
     interfaceEl.innerHTML = "";
     interfaceEl.appendChild(dom(d));
+    highlight();
+
+
 }
 
 let defaultrenderer = (el, i, a, prefix = "") => {
-    if (Array.isArray(el)) return arrayui(el, a.concat([i]));
+    // console.log("Rendering:", el);
+    if (Array.isArray(el)){
+        if (Array.isArray(el[0])){
+            return renderchain(el, a.concat([i]));
+        }
+
+     else {
+        return arrayui(el, a.concat([i]));
+    }
+}
+    // return arrayui(el, a.concat([i]));
     else if (typeof el == "string") return ["span.string", selected(a, i), prefix + el];
     else if (typeof el == "number") {
         return ["span.number", selected(a, i), (prefix + el + "")];
@@ -204,7 +217,7 @@ let selected = (address, i) => {
     let addy_str = addy.join("-");
     return {
         address: addy_str,
-        selected: addy_str == cursor.value().join("-"),
+        // selected: addy_str == cursor.value().join("-"),
         onclick: (e) => {
             e.stopImmediatePropagation();
             e.stopPropagation();
@@ -212,6 +225,15 @@ let selected = (address, i) => {
         },
     };
 };
+
+let renderchain = (chain,addy) => {
+    let stuff = [".chain", { address: addy.join("-")}];
+    chain.forEach((fn, fnI) => {
+        // if (fnI > 0 ) stuff.push(["span.dot]);
+        stuff.push(arrayui(fn, addy.concat([fnI])));
+    });
+    return stuff;
+}
 
 let arrayui = (item, addy) => {
 
@@ -234,6 +256,20 @@ let arrayui = (item, addy) => {
 
 let cursor = reactive([0]);
 // cursor.between = false;
+
+let highlight = () => {
+    let v = cursor.value();
+    document.querySelectorAll("*[selected ='true']").forEach(el => 
+        el.setAttribute("selected","false")
+    );
+           
+    
+    let selectedEl = document.querySelector(`*[address='${v.join("-")}']`);
+    if (selectedEl){
+                selectedEl.setAttribute("selected", "true");
+            selectedEl.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+};
 
 cursor.subscribe((v) => {
     let selected = document.querySelector("*[selected='true']");
@@ -345,11 +381,11 @@ let keys = {
 "BF": ["sub", ["src", "o0"], 0.5],
 "BE": ["add", ["src", "o0"], 0.5],
 "BA": ["linearBurn", ["src","o0"],0.5],
-"BC":["divide", ["src","o0"],0.5],
-/*"BD":
-"BJ":
-"BK":
-"BL":*/
+"BC":["colorBurn", ["src","o0"],0.5],
+"BD":["colorDodge", ["src","o0"],0.5],
+"BJ":["glow", ["src","o0"],0.5],
+"BK":["vividLight", ["src","o0"],0.5],
+"BL":["divide", ["src","o0"],0.5],
 
 //to do: separate by transforms or color
 //effects
@@ -369,104 +405,27 @@ let keys = {
 "LI":["noise", 4,0.1],
 "LH": ["osc", 1, 0.1, 1],
 "LG": ["shape", 4, 0.1, 0.01],
-"LF": ["src", "o0"],
+"LF": ["src", "o2"],
 "LA": ["src", "s0"],
 "LE": ["src","o1"],
-"LD": ["src","o2"],
+"LD": ["src","o0"],
 "LC": ["src","s0"],
 "LB": ["src","s1"],
-"LA": ["src","s2"],
+
 
 //numbers
 "DI": ["number", 0.1],
-"DG": ["number", -0.1],
-"EI": ["number", 1],
-"EG": ["number", -1],
-"FI": ["number", 10],
-"FG": ["number", -10],
-"HI": ["number", -1],
-"HG": ["number", 10],
-"HK": ["number", -10],
+"DH": ["number", -0.1],
+"EI": ["number", 1.],
+"EH": ["number", -1.],
+"FI": ["number", 10.],
+"FH": ["number", -10.],
+"DB": ["number", 0.],
+
 
 "L": ["system", "deleteline"]
 
 };
-//to do:
-// fix rules so i can add a modulate or something after an existing modulate
-
-/*"DI": ["number" + 0.1
-"DG - (number) - 0.1
-"EI - (number) + 1
-"EG - (number) - 0.1
-"FI - (number) + 10
-"FG - (number) -10
-"HI - (number) * 10
-"HG - (number) / 10
-"HK - (number) zero*/
-
-
-/*I - navigate up
-G - navigate down
-H - run code
-D - exit (out?)
-F - enter (in?)
-E - delete
-"F": [cursor.goPrev()],*/
-
-//rambling 
-    
-// if selected is a modulate or blend function 
-// sending cmd for blend/modulate function should replace the existing function
-
-// if selected is a modulate or blend function, and we send cmd for src
-// what should we do? either replace the first parameter with the new src
-// or add src on next line (then we will need to send another cmd to blend/modulate it)
-
-// what if we added the src wrapped around the selected function onto the next line? <- i think this is the way
-
-// how to move / reorder functions? shuffle button (shuffle order)
-
-// randomize numbers. knob to determine scale of randomization (lower scale means numbers remain closer to original,
-// to add subtle variations to visuals / higher scale, more unpredictability and noticeable change from original)
-
-//if selected is a src and we send modulate/blend cmd, it should replace the src 
-//and put the src that we replaced as the first parameter of the modulate/blend function we just added
-
-//if selected is a src and we send src cmd, it should replace the existing src with the new src
-//---------------------------------------------------------------------------------------------------------//
-    //blends: mult, diff, add, sub (and all the hyper-hydra blend modes, but we can do that later)
-    //modulates: modulate, modulateScale, modulatePixelate, modulateRotate, modulateKaleid etc
-    //effects (texture): rotate, shape, pixelate, kaleid
-    //effects (color):  colorama, hue, brightness, contrast, luma, thresh
-    //src: shape, noise, voronoi, osc, s0-s3, o0-o3
-
-//rules:
-//main function block -> once ((there are actually 4 of these possible, but just focusing on one for now))
-
-//begins with a src. you can not delete this. but sending a src command will replace existing src
-//sending a modulate/blend/effect when top src is highlightedshould add it to the next line. 
-// same if a gap is highlighted
-
-//inside the main function block (or main->modulate->src() -  src() has same rules as the src of  main function block)
-// ie you can only add blends, modulates, and effects
-// if you send a src with a src highlighted, replace the existing src
-// if you send a modulate/blend a src highlighted, add it to this sub-hydra-code with that modulate/blend
-//with that highlighted src as the first pararmeter
-
-//if effect is added with src or modulate selected, add it to the next line
-//effects can only have numbers as parameters. you can't add a src or effect or blend as a parameter, only numbers)
-
-//if you add a blend/modulate function in the main (or to the src of a modulate/blend),
-// the first parameter will always be a src.
-//second (and third if exists) parameter will always be a number. 
-//you can not remove any parameters. delete key with a parameter selected should reset it back to default values
-
-//the blend/modulate function always has src as the first parameter.
-//you can either highlighted the src, or right cmd should highlight gap 
-// if this gap is highlighted, it behaves the same as if you are inside the main function block
-//ie you can only add blends/modulates/effects to it, you can't add a src to it
-
-//i just realized something wild
 
 let buffer;
 let port = undefined;
@@ -580,6 +539,7 @@ let runCmd = (keystroke) => {
         codeData = allO[currentO];
         cursor.next(()=>[0]);
         updateUI();
+        update_page();
     }
 
     else if (cmd.KEY == "G"){
@@ -589,6 +549,7 @@ let runCmd = (keystroke) => {
         codeData = allO[currentO];
         cursor.next(()=>[0]);
         updateUI();
+        update_page();
     }
 
     else {
@@ -608,7 +569,7 @@ let runCmd = (keystroke) => {
         
     }
 
-        if (cmd.KEY == "DG"){
+        if (cmd.KEY == "DH"){
             cur[curI] += -.1;
             updateUI();
         
@@ -616,52 +577,39 @@ let runCmd = (keystroke) => {
 
         if (cmd.KEY == "EI"){
     
-            cur[curI] += 1;
+            cur[curI] += 1.;
             updateUI();
     
     }
 
-        if (cmd.KEY == "EG"){
+        if (cmd.KEY == "EH"){
 
-            cur[curI] += -1;
+            cur[curI] += -1.;
             updateUI();
 
     }
 
         if (cmd.KEY == "FI"){
 
-            cur[curI] += 10;
+            cur[curI] *= 10;
             updateUI();
         
     }
 
-        if (cmd.KEY == "FG"){
-
-            cur[curI] += -10;
-            updateUI();
-
-    }
-
-            if (cmd.KEY == "HI"){
+        if (cmd.KEY == "FH"){
 
             cur[curI] *= 0.1;
             updateUI();
 
     }
 
-            if (cmd.KEY == "HG"){
+    if (cmd.KEY == "DB"){
 
-            cur[curI] *= 10;
+            cur[curI] = 0.;
             updateUI();
-    
+
     }
 
-            if (cmd.KEY == "HK"){
-        
-            cur[curI] = 0;
-            updateUI();
-        
-    }
 
     }
 
@@ -720,7 +668,10 @@ let runCmd = (keystroke) => {
                     else {
                         cur[curI] = [[...cur[curI]],[...item]];
                     }
+                                cursor.next(a => [...a, 0]);
+
                 }
+
                 updateUI();
                 //add the modulate or effect function to the next line
             }
