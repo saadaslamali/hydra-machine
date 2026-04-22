@@ -3,5 +3,5 @@ Building on the interface by Aaryan (https://github.com/caizoryan/hydra-interfac
 
 The ultimate hydra machine...
 
-Version 1 performance: https://www.youtube.com/watch?v=Mbig_bOe8DU
+Version 0 performance: https://www.youtube.com/watch?v=Mbig_bOe8DU
 
