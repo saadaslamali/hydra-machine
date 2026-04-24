@@ -164,7 +164,7 @@ let compile_chain = (chain) => {
 
 const src = new Set(["noise","osc","shape","gradient","voronoi", "solid", "s0", "o0", "o1","o2","s1" , "src"]);
 const out = new Set(["out"]);
-const color_effect = new Set(["colorama","invert","hue","thresh","luma","saturate","contrast","brightness","scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
+const color_effect = new Set(["colorama","invert","hue","thresh","luma","saturate","contrast","brightness","scale","repeat","rotate", "scrollX", "scrollY", "kaleid","invert"]);
 const transform_effect = new Set(["scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
 const modulate = new Set(["modulate", "modulateScale", "modulateRepeat", "modulateRepeat", "modulateKaleid", "modulateScrollY", "modulateScrollX"])
 const blend = new Set(["diff", "blend", "mult", "add", "sub","linearBurn","colorBurn","colorDodge","linearDodge","vividLight","difference",
@@ -419,7 +419,7 @@ let keys = {
 "AJ": ["modulateRepeat", ["src", "o0"],[-3,3]],
 "AD": ["modulateScrollX", ["src", "o0"],[-.5,.5],[-.25,.25]],
 "AE": ["modulateScrollY", ["src", "o0"],[-.5,.5],[-.25,.25]],
-"AF": ["modulateKaleid", ["src", "o0"], [0,20]],
+"AF": ["modulateKaleid", ["src", "o0"], [0.1,20]],
 "AG": ["modulatePixelate", ["src", "o0"], [-100,100],[-100,100]],
 
 //blends
@@ -450,7 +450,7 @@ let keys = {
 "HB": ["lighten", ["src", "o0"],[0.1,0.9]],
 "HC": ["screen", ["src", "o0"], [0.1,0.9]],
 "HD": ["overlay", ["src", "o0"], [0.1,0.9]],
-
+"HE" : ["kaleid", ["src","o0"], [0.1,30]],
 
 // darken
 // multiply
@@ -480,27 +480,28 @@ let keys = {
 //to do: separate by transforms or color
 //effects
 "CI": ["colorama", [-1,1]],
-"CH": ["scale", [-1.5,1.5], [-1.5,1.5]],
-"KG": ["repeat", [1,3],[1,3]],
-"KI": ["rotate", [0,0.1],[-0.25,0.25]],
+"CL": ["scale", [-1.5,1.5], [-1.5,1.5]],
+"CK": ["repeat", [1,3],[1,3]],
+"CJ": ["rotate", [0,0.1],[-0.25,0.25]],
 "CF": ["hue", [0,1]],
 "CE": ["thresh", [0.4,0.6]],
-"CD": ["luma", [0.4,0.6]],
-"CJ": ["saturate", [1,1.25]],
-"CK": ["contrast", [1,1.25]],
-"CL": ["brightness", [0,0.1]],
+"CB": ["luma", [0.4,0.6]],
+"CG": ["saturate", [1,1.25]],
+"CH": ["contrast", [1,1.25]],
+"CA": ["brightness", [0,0.1]],
+"CD": ["invert",[1,1]],
 
 
 //srcs
 "LI":["noise", [0,7],[-0.1,0.1]],
 "LH": ["osc", [0,2], [-0.25,0.25], [-10,10]],
 "LG": ["shape", [0,20], [0.1,0.4], [0.01,0.1]],
+"LK": ["shape", [0,20], [0.1,0.4], [0.01,0.1]],
 "LF": ["src", "o2"],
 "LA": ["src", "s0"],
 "LE": ["src","o1"],
 "LD": ["src","o0"],
-"LC": ["src","s0"],
-"LB": ["src","s1"],
+"LC": ["src","s1"],
 
 
 //numbers
@@ -848,7 +849,45 @@ let runCmd = (keystroke) => {
                 updateUI();
             }
 
-            else if (cmd_type === "effect"){
+            else if (cmd_type === "effect" || cmd_type === "blend"){
+                //add the default cmd_type effect to the next line
+
+            codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
+            updateUI();
+            }
+
+            else if (cmd_type === "number"){
+
+            cursor.next(a => [...a, 2]);       
+            [cur, curI] = getcurrentref();   
+            number_change();
+
+                //go inside the src and highlight the 2nd parameter (and apply that number change +.1 or whatever)
+                //2nd because the first parameter will always be a src
+            }
+            else {
+            //do nothing i guess
+            }
+        }
+
+        else if (sel_type === "blend"){
+            if (cmd_type === "src")
+            {
+                let cmd_mod = [...cur[curI]];
+                cmd_mod[1] = random_param(correct_src(item,currentO));
+                codeData.splice(curI + 1, 0, cmd_mod);
+                updateUI();
+                //duplicate the sel_type modulate
+                // replace sel_type src with cmd_type src as it's first parameter, add it to next line
+            }
+
+            else if (cmd_type === "blend"){
+                //replace the sel_type modulate with the cmd_type modulate
+                cur[curI] =random_param(correct_src(item,currentO));
+                updateUI();
+            }
+
+            else if (cmd_type === "effect" || cmd_type === "modulate"){
                 //add the default cmd_type effect to the next line
 
             codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
@@ -901,6 +940,8 @@ let runCmd = (keystroke) => {
             //do nothing i guess
             }
         }	
+
+
 
 
         else if (sel_type === "number"){
