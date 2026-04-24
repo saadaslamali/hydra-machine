@@ -116,16 +116,7 @@ let selected = (address, i) => {
 };
 
 let arrayui = (item, addy) => {
-    // if (Array.isArray(item[0])) {
-    //     let stuff = [".fn", selected(addy),
-    //         defaultrenderer(item[0], 0, addy),
-    //         ["p", selected(addy, 1), item[1]]
-    //     ];
-    //     item.slice(2).forEach((el, i) => {
-    //         stuff.push(defaultrenderer(el, i + 2, addy));
-    //     });
-    //     return stuff;
-    // }
+
 
     let stuff = [".fn", selected(addy)];
     item.forEach((el, i) => {

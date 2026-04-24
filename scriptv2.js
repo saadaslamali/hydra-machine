@@ -22,16 +22,19 @@ let allO = [
 
     [
         ["src", "s0"],
+        ["blend", ["src","o0"], 0.5],
         ["out", "o0"]
     ],
 
     [
         ["src","o0"],
+        ["blend", ["src","o1"], 0.5],
         ["out","o1"]
     ],
 
     [
         ["src","o1"],
+        ["blend", ["src","o2"], 0.5],
         ["out","o2"]
     ]
 
@@ -80,8 +83,7 @@ function setup_iframe(){
             Object.assign(window,h.synth);
             window.h = h;
             </script>
-// loadScript("https://cdn.jsdelivr.net/gh/geikha/hyper-hydra@latest/hydra-wrap.js")
-        // <script src="./lib/hydra-blend.js"></script>
+
         <script src="https://cdn.jsdelivr.net/gh/geikha/hyper-hydra@latest/hydra-blend.js"></script>
 
         <script>
@@ -130,15 +132,45 @@ let compile_chain = (chain) => {
     if (!Array.isArray(chain)) throw new Error("should be array");
     return chain.map(compile_node).join(".");
 }
+/*
+"BI": ["blend", ["src", "o0"],[0.25,0.95]],
+"BA": ["mult", ["src", "o0"], [0.1,0.9]],
+"BJ": ["diff", ["src", "o0"],[0.1,0.9]],
+"BL": ["sub", ["src", "o0"], [0.1,0.9]],
+"BK": ["add", ["src", "o0"], [0.1,0.9]],
+"BE": ["linearBurn", ["src","o0"],[0.1,0.9]],
+"BC":["colorBurn", ["src","o0"],[0.1,0.9]],
+"BD":["colorDodge", ["src","o0"],[0.1,0.9]],
+"BF":["linearDodge", ["src","o0"],[0.1,0.9]],
+"BG":["vividLight", ["src","o0"],[0.1,0.9]],
+"BH":["difference", ["src","o0"],[0.1,0.9]],
 
+"GA": ["softLight", ["src", "o0"], [0.1,0.9]],
+"GB": ["hardLight", ["src", "o0"],[0.1,0.9]],
+"GC": ["pinLight", ["src", "o0"], [0.1,0.9]],
+"GD": ["hardMix", ["src", "o0"], [0.1,0.9]],
+"GE": ["exclusion", ["src","o0"],[0.1,0.9]],
+"GF":["difference", ["src","o0"],[0.1,0.9]],
+"GH":["glow", ["src","o0"],[0.1,0.9]],
+"GI":["linearLight", ["src","o0"],[0.1,0.9]],
+"GJ":["reflect", ["src","o0"],[0.1,0.9]],
+"GK":["screen", ["src","o0"],[0.1,0.9]],
 
+"HA": ["darken", ["src", "o0"], [0.1,0.9]],
+"HB": ["lighten", ["src", "o0"],[0.1,0.9]],
+"HC": ["screen", ["src", "o0"], [0.1,0.9]],
+"HD": ["overlay", ["src", "o0"], [0.1,0.9]],
+*/
 
 const src = new Set(["noise","osc","shape","gradient","voronoi", "solid", "s0", "o0", "o1","o2","s1" , "src"]);
 const out = new Set(["out"]);
 const color_effect = new Set(["colorama","invert","hue","thresh","luma","saturate","contrast","brightness","scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
 const transform_effect = new Set(["scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
-const modulate = new Set(["modulate", "modulateScale", "modulateRepeat", "modulateRepeat", "modulateKaleid", "modulateScrollY", "modulateScrollX","diff", "blend", "mult", "add", "sub"])
-const blend = new Set(["diff", "blend", "mult", "add", "sub"])
+const modulate = new Set(["modulate", "modulateScale", "modulateRepeat", "modulateRepeat", "modulateKaleid", "modulateScrollY", "modulateScrollX"])
+const blend = new Set(["diff", "blend", "mult", "add", "sub","linearBurn","colorBurn","colorDodge","linearDodge","vividLight","difference",
+    "softLight","hardLight","pinLight","hardMix","exclusion","difference","glow","linearLight","reflect","screen",
+"darken","lighten","screen","overlay"
+])
 const number = new Set(["number"]);
 const system = new Set(["system"]);
 
@@ -313,6 +345,13 @@ let getref = (address, arr) => {
 
 cursor.goNext = (out = false) => {
     let [ref, refindex] = getcurrentref();
+
+    if (cursor.value().length === 1){
+        const out_index = codeData.findIndex(item => Array.isArray(item) && item[0] === "out");
+        const max_index = out_index - 2;
+        if (refindex >= max_index) return;
+    }
+
     if (refindex < ref.length - 1) {
         cursor.next((e) => (e[e.length - 1] += 1, e));
         let [ref, refindex] = getcurrentref();
@@ -375,38 +414,80 @@ let random_param = (param) => {
 let keys = {
 
 //srcs
-"AI": ["modulate", ["src", "o0"],[-1,1]],
-"AH": ["modulateScale", ["src", "o0"], [-1,1]],
-"AD": ["modulateRepeat", ["src", "o0"],[-3,3]],
-"AF": ["modulateScrollX", ["src", "o0"],[-1,1],[-1,1]],
-"AE": ["modulateScrollY", ["src	", "o0"],[-1,1],[-1,1]],
-"AG": ["modulateKaleid", ["src", "o0"], [0,20]],
-"AJ": ["modulatePixelate", ["src", "o0"], [-100,100],[-100,100]],
+"AI": ["modulate", ["src", "o0"],[-.25,.25]],
+"AH": ["modulateScale", ["src", "o0"], [-0.2,0.5]],
+"AJ": ["modulateRepeat", ["src", "o0"],[-3,3]],
+"AD": ["modulateScrollX", ["src", "o0"],[-.5,.5],[-.25,.25]],
+"AE": ["modulateScrollY", ["src", "o0"],[-.5,.5],[-.25,.25]],
+"AF": ["modulateKaleid", ["src", "o0"], [0,20]],
+"AG": ["modulatePixelate", ["src", "o0"], [-100,100],[-100,100]],
 
 //blends
-"BI": ["blend", ["src", "o0"],[0.5,0.95]],
-"BH": ["mult", ["src", "o0"], [0,1]],
-"BG": ["diff", ["src", "o0"],[0,1]],
-"BF": ["sub", ["src", "o0"], [0,1]],
-"BE": ["add", ["src", "o0"], [0,1]],
-"BA": ["linearBurn", ["src","o0"],[0,1]],
-"BC":["colorBurn", ["src","o0"],[0,1]],
-"BD":["colorDodge", ["src","o0"],[0,1]],
-"BJ":["glow", ["src","o0"],[0,1]],
-"BK":["vividLight", ["src","o0"],[0,1]],
-"BL":["divide", ["src","o0"],[0,1]],
+"BI": ["blend", ["src", "o0"],[0.25,0.95]],
+"BA": ["mult", ["src", "o0"], [0.1,0.9]],
+"BJ": ["diff", ["src", "o0"],[0.1,0.9]],
+"BL": ["sub", ["src", "o0"], [0.1,0.9]],
+"BK": ["add", ["src", "o0"], [0.1,0.9]],
+"BE": ["linearBurn", ["src","o0"],[0.1,0.9]],
+"BC":["colorBurn", ["src","o0"],[0.1,0.9]],
+"BD":["colorDodge", ["src","o0"],[0.1,0.9]],
+"BF":["linearDodge", ["src","o0"],[0.1,0.9]],
+"BG":["vividLight", ["src","o0"],[0.1,0.9]],
+"BH":["difference", ["src","o0"],[0.1,0.9]],
+
+"GA": ["softLight", ["src", "o0"], [0.1,0.9]],
+"GB": ["hardLight", ["src", "o0"],[0.1,0.9]],
+"GC": ["pinLight", ["src", "o0"], [0.1,0.9]],
+"GD": ["hardMix", ["src", "o0"], [0.1,0.9]],
+"GE": ["exclusion", ["src","o0"],[0.1,0.9]],
+"GF":["difference", ["src","o0"],[0.1,0.9]],
+"GH":["glow", ["src","o0"],[0.1,0.9]],
+"GI":["linearLight", ["src","o0"],[0.1,0.9]],
+"GJ":["reflect", ["src","o0"],[0.1,0.9]],
+"GK":["screen", ["src","o0"],[0.1,0.9]],
+
+"HA": ["darken", ["src", "o0"], [0.1,0.9]],
+"HB": ["lighten", ["src", "o0"],[0.1,0.9]],
+"HC": ["screen", ["src", "o0"], [0.1,0.9]],
+"HD": ["overlay", ["src", "o0"], [0.1,0.9]],
+
+
+// darken
+// multiply
+// colorBurn
+// linearBurn
+// lighten
+// screen
+// colorDodge
+// linearDodge
+// overlay
+// softLight
+// hardLight
+// vividLight
+// linearLight
+// pinLight
+// hardMix
+// difference
+// exclusion
+// subtract
+// divide
+// negation / negate
+// add2 (i didn't want to replace the regular Hydra add)
+// glow
+// reflect
+// phoenix
 
 //to do: separate by transforms or color
 //effects
 "CI": ["colorama", [-1,1]],
 "CH": ["scale", [-1.5,1.5], [-1.5,1.5]],
-"KG": ["repeat", [0,4],[0,4]],
-"KI": ["rotate", [0,0.1],[-0.5,0.5]],
+"KG": ["repeat", [1,3],[1,3]],
+"KI": ["rotate", [0,0.1],[-0.25,0.25]],
 "CF": ["hue", [0,1]],
-"CE": ["thresh", [0.2,0.8]],
-"CD": ["luma", [0.2,0.8]],
-"CJ": ["saturate", [1,1.5]],
-"CK": ["contrast", [1,1.5]],
+"CE": ["thresh", [0.4,0.6]],
+"CD": ["luma", [0.4,0.6]],
+"CJ": ["saturate", [1,1.25]],
+"CK": ["contrast", [1,1.25]],
 "CL": ["brightness", [0,0.1]],
 
 
@@ -456,6 +537,16 @@ const random_param = (item) => {
     }
     return randomized;
 
+}
+
+const correct_src = (item, pageIndex) =>{
+    if (!item) return item;
+    const ismodorblend = modulate.has(item[0])|| blend.has(item[0]);
+    if (ismodorblend && Array.isArray(item[1]) && item[1][0] === "src"){
+        const curO = ["o0","o1","o2"];
+        return [item[0], ["src", curO[pageIndex]], ...item.slice(2)];
+    }
+    return item;
 }
 
 let buffer;
@@ -533,6 +624,8 @@ let runCmd = (keystroke) => {
     // console.log(cmd);
     let [cur, curI] = getcurrentref();
 
+    // const ismod_orblend = modulate.has(item[0]) 
+
     //if (cmd.KEY2){
     if (cmd.KEY == "H") {
     cursor.goNext();
@@ -556,9 +649,17 @@ let runCmd = (keystroke) => {
         updateUI();
         }
     }
+
+
         // else console.log(cur[curI])
     }
-
+    if (cmd.KEY == "K"){
+        const blend_pot = (cmd.POT / 1023).toFixed(2);
+        const out_index = allO[currentO].findIndex(item => Array.isArray(item) && item[0] === "out");
+        const blend_index = out_index - 1;
+        allO[currentO][blend_index][2] = parseFloat(blend_pot);
+        update_page();
+    }
 
     if (cmd.KEY == "D" || cmd.KEY == "C"){
             update_page();
@@ -662,6 +763,14 @@ let runCmd = (keystroke) => {
                 buffer = cur[curI];
                 cur.splice(curI, 1);
                 updateUI();
+                
+                if (cursor.value().length === 1){
+                    const out_index = codeData.findIndex(item => Array.isArray(item) && item[0] === "out");
+                    if (curI >= out_index -1){
+                        cursor.next((a) => (a[a.length -1] -= 1, a));
+                    }
+                }
+
             }
         }
         }
@@ -673,23 +782,27 @@ let runCmd = (keystroke) => {
         if (sel_type === "src"){
             if (cmd_type === "src")
             {	
-                cur[curI] = random_param(item);
-                updateUI();
+                const verify_src = (currentO === 1 || currentO === 2) && cursor.value().length === 1 && curI === 0
+            
+                    if (!verify_src){
 
+                    cur[curI] = random_param(correct_src(item,currentO));
+                    updateUI();
+                    }
                 //replace the existing src with this new one
             }
-            else if (cmd_type === "modulate" || cmd_type === "effect" ){
+            else if (cmd_type === "modulate" || cmd_type === "effect" || cmd_type === "blend" ){
                 if (cursor.value().length === 1){
-                    codeData.splice(curI + 1, 0, random_param(item));
+                    codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
                     updateUI;
                 }
               
                 else {
                     if (Array.isArray(cur[curI][0])){
-                        cur[curI].push(random_param(item));
+                        cur[curI].push(random_param(correct_src(item,currentO)));
                     }
                     else {
-                        cur[curI] = [[...cur[curI]],random_param(item)];
+                        cur[curI] = [[...cur[curI]],random_param(correct_src(item,currentO))];
                     }
                                 cursor.next(a => [...a, 0]);
 
@@ -722,7 +835,7 @@ let runCmd = (keystroke) => {
             if (cmd_type === "src")
             {
                 let cmd_mod = [...cur[curI]];
-                cmd_mod[1] = random_param(item);
+                cmd_mod[1] = random_param(correct_src(item,currentO));
                 codeData.splice(curI + 1, 0, cmd_mod);
                 updateUI();
                 //duplicate the sel_type modulate
@@ -731,14 +844,14 @@ let runCmd = (keystroke) => {
 
             else if (cmd_type === "modulate"){
                 //replace the sel_type modulate with the cmd_type modulate
-                cur[curI] =random_param(item);
+                cur[curI] =random_param(correct_src(item,currentO));
                 updateUI();
             }
 
             else if (cmd_type === "effect"){
                 //add the default cmd_type effect to the next line
 
-            codeData.splice(curI + 1, 0, random_param(item));
+            codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
             updateUI();
             }
 
@@ -766,14 +879,14 @@ let runCmd = (keystroke) => {
             else if (cmd_type === "modulate"){
                 //add default cmd_type modulate to the next line
 
-            codeData.splice(curI + 1, 0, random_param(item));
+            codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
             updateUI();
             }
 
             else if (cmd_type === "effect"){
                 //add the default cmd_type effect to the next line
 
-            codeData.splice(curI + 1, 0, random_param(item));
+            codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
             updateUI();
             }
 
@@ -884,7 +997,7 @@ document.onkeydown = async (e) => {
     if (Array.isArray(cur)) {
         Object.entries(keys).forEach(([key, item]) => {
             if (e.key == key) {
-                cur.splice(curI + 1, 0, (random_param(item)));
+                cur.splice(curI + 1, 0, (random_param(correct_src(item,currentO))));
                 updateUI();
             }
         });

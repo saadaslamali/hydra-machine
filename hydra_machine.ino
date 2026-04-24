@@ -33,6 +33,7 @@ uint16_t currtouched = 0;
 int8_t modifierPin = -1;
 uint8_t tapSequence[2]; 
 uint8_t sequenceLength = 0;
+uint16_t pot_value = analogRead(A2);
 
 const char* pinToLetter[12] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'};
 char str1[] = "";
@@ -46,6 +47,7 @@ void setup() {
     delay(10);
   }
 
+  pinMode(A2,INPUT);
   // JsonDocument doc;
 
 
@@ -68,6 +70,9 @@ void loop() {
   JsonDocument doc;
 
   currtouched = cap.touched();
+
+  pot_value = analogRead(A2);
+
   if (modifierPin == -1){
     for (uint8_t i=0; i<12; i++){
     if ((currtouched & _BV(i)) && !(lasttouched & _BV(i))){
@@ -88,6 +93,7 @@ void loop() {
        str1[0] = pinToLetter[modifierPin];
           str1[1] = '\0';
          doc["KEY"] = str1;
+         doc["POT"] = pot_value;
           // doc["KEY2"] = "null";
             serializeJson(doc, Serial);
       //  data.add(pinToLetter[modifierPin]);
@@ -108,6 +114,8 @@ void loop() {
                     str1[2] = '\0';
 
           doc["KEY"] = str1;
+          doc["POT"] = pot_value;
+
           // doc["KEY2"] = pinToLetter[i];
           serializeJson(doc, Serial);
           Serial.println();
