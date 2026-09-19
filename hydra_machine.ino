@@ -16,7 +16,6 @@ BSD license, all text above must be included in any redistribution
 **********************************************************/
 
 #include <Wire.h>
-#include <ArduinoJson.h>
 #include "Adafruit_MPR121.h"
 
 #ifndef _BV
@@ -33,10 +32,9 @@ uint16_t currtouched = 0;
 int8_t modifierPin = -1;
 uint8_t tapSequence[2]; 
 uint8_t sequenceLength = 0;
-uint16_t pot_value = analogRead(A2);
 
-const char* pinToLetter[12] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'};
-char str1[] = "";
+const char pinToLetter[12] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'};
+
 
 void setup() {
   Serial.begin(9600);
@@ -46,10 +44,6 @@ void setup() {
   while (!Serial) { 
     delay(10);
   }
-
-  pinMode(A2,INPUT);
-  // JsonDocument doc;
-
 
   // Serial.println("Adafruit MPR121 Capacitive Touch sensor test");
 
@@ -67,70 +61,59 @@ void setup() {
 }
 
 void loop() {
-  JsonDocument doc;
 
   currtouched = cap.touched();
 
-  pot_value = analogRead(A2);
+  if (modifierPin == -1) {
+    //if the shift pin isnt held, wait for it to be
+    for (uint8_t i = 0; i < 12; i++) {
 
-  if (modifierPin == -1){
-    for (uint8_t i=0; i<12; i++){
-    if ((currtouched & _BV(i)) && !(lasttouched & _BV(i))){
-              modifierPin = i;
-              sequenceLength = 0;
-              tapSequence[sequenceLength] = i; 
-              sequenceLength++;
-              break; 
-    }
-    }
-  }
+      if ((currtouched & _BV(i)) && !(lasttouched & _BV(i))) {
 
-  else {
-
-   if (!(currtouched & _BV(modifierPin)) && (lasttouched & _BV(modifierPin))) {
-      
-    if (sequenceLength < 2){
-       str1[0] = pinToLetter[modifierPin];
-          str1[1] = '\0';
-         doc["KEY"] = str1;
-         doc["POT"] = pot_value;
-          // doc["KEY2"] = "null";
-            serializeJson(doc, Serial);
-      //  data.add(pinToLetter[modifierPin]);
-        Serial.println();
-   }
-       modifierPin = -1;
-   }
-  else {
-   
-      for (uint8_t i =0; i<12; i++)
-      {
-        if (i == modifierPin) continue;
-        if ((currtouched & _BV(i)) && !(lasttouched & _BV(i))){
-            // Serial.print(pinToLetter[modifierPin]);
-            // Serial.println(pinToLetter[i]);
-          str1[0] = pinToLetter[modifierPin];
-          str1[1] = pinToLetter[i];
-                    str1[2] = '\0';
-
-          doc["KEY"] = str1;
-          doc["POT"] = pot_value;
-
-          // doc["KEY2"] = pinToLetter[i];
-          serializeJson(doc, Serial);
-          Serial.println();
-
-            sequenceLength = 2;
-            // modifierPin = -1;
-          
-        }
-
+        modifierPin = i;
+        sequenceLength = 0; 
+        tapSequence[sequenceLength] = i; 
+        sequenceLength++;
+        break; 
       }
-  
-
+    }
   }
 
+ else {
+    //if the modifier pin is let go
+    if (!(currtouched & _BV(modifierPin)) && (lasttouched & _BV(modifierPin))) {
+/*
+      for (uint8_t i = 0; i < sequenceLength; i++) {
+        Serial.print(pinToLetter[tapSequence[i]]);
+      }
+      Serial.println();  
+*/
+      modifierPin = -1;
+    }
+
+    else {
+      for (uint8_t i = 0; i < 12; i++) {
+        if (i == modifierPin) continue;
+        
+        if ((currtouched & _BV(i)) && !(lasttouched & _BV(i))) {
+          if (sequenceLength < 2) {
+            tapSequence[sequenceLength] = i;
+            sequenceLength++;
+                    // Serial.print(pinToLetter[tapSequence[i]]);
+
+          }
+          else {
+        for (uint8_t i = 0; i < sequenceLength; i++) {
+        Serial.print(pinToLetter[tapSequence[i]]);
+      }
+          }
+                              // Serial.print(pinToLetter[tapSequence[i]]);
+
+        }
+      }
+    }
   }
+
 
   // reset our state
   lasttouched = currtouched;
