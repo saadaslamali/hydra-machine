@@ -2,7 +2,6 @@
 //wearable interface for live coding with hydra.js
 //arduino nano + adafruit mpr121 touch sensor  
 //built on the inital hydra interface made by Aaryan Pashine (https://github.com/caizoryan/hydra-interface)
-
 import { reactive } from "./chowk.js";
 import { dom } from "./dom.js";
 
@@ -427,7 +426,7 @@ let keys = {
 "HF": ["modulatePixelate", ["src", "o0"], [-100,100],[-100,100]],
 
 //blends
-"LH": ["blend", ["src", "o0"],[0.25,0.95]],
+"BH": ["blend", ["src", "o0"],[0.25,0.95]],
 "LE": ["mult", ["src", "o0"], [0.1,0.9]],
 "LJ": ["diff", ["src", "o0"],[0.1,0.9]],
 "LC": ["sub", ["src", "o0"], [0.1,0.9]],
@@ -464,6 +463,8 @@ let keys = {
 "EJ": ["scale", [-1.5,1.5], [-1.5,1.5]],
 "EC": ["repeat", [1,3],[1,3]],
 "EJ": ["rotate", [0,0.1],[-0.25,0.25]],
+"EB": ["scrollY",[-0.5,0.5],[-0.3,0.3]],
+"EK": ["scrollX",[-0.5,0.5],[-0.3,0.3]],
 "CF": ["hue", [0,1]],
 "CE": ["thresh", [0.4,0.6]],
 // "CB": ["luma", [0.4,0.6]],
@@ -490,7 +491,8 @@ let keys = {
 "GB": ["number", 10.],
 "GK": ["number", -10.],
 "GF": ["number", 0.],
-"GD": ["number",0.01],
+"I": ["number",0.01],
+"D": ["number", 0.02],
 // "LC": ["src","s1"],
 
 
@@ -736,8 +738,12 @@ let runCmd = (keystroke) => {
             updateUI();
 
     }
-    if (cmd.KEY == "GD"){
+    if (cmd.KEY == "I"){
         cur[curI] *= (Math.random()*4.) -2.;
+    }
+
+    if (cmd.KEY == "D"){
+        cur[curI] = (Math.random()*2.) -1.;
     }
 
     }
@@ -1066,5 +1072,6 @@ document.onkeydown = async (e) => {
         }
     }
 };
+
 
 
