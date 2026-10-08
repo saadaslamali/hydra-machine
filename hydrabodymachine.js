@@ -1,6 +1,6 @@
 //second hydra machine
 //wearable interface for live coding with hydra.js
-//arduino nano + mpr121 going 
+//arduino nano + adafruit mpr121 touch sensor  
 //built on the inital hydra interface made by Aaryan Pashine (https://github.com/caizoryan/hydra-interface)
 
 import { reactive } from "./chowk.js";
