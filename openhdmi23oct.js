@@ -38,6 +38,7 @@ let allO = [
 
     [
         ["src","o1"],
+        // ["repeat",3.,1.],
         ["blend", ["src","o2"], 0.],
         ["out","o2"]
     ]
@@ -170,7 +171,7 @@ const src = new Set(["noise","osc","shape","gradient","voronoi", "solid", "s0", 
 const out = new Set(["out"]);
 const color_effect = new Set(["colorama","invert","hue","thresh","luma","saturate","contrast","brightness","scale","repeat","rotate", "scrollX", "scrollY", "kaleid","invert"]);
 const transform_effect = new Set(["scale","repeat","rotate", "scrollX", "scrollY", "kaleid"]);
-const modulate = new Set(["modulate", "modulateScale", "modulateRepeat", "modulateRepeat", "modulateKaleid", "modulateScrollY", "modulateScrollX", "modulatePixelate"])
+const modulate = new Set(["modulate", "modulateScale", "modulateRotate", "modulateRepeat", "modulateKaleid", "modulateScrollY", "modulateScrollX", "modulatePixelate"])
 const blend = new Set(["diff", "blend", "mult", "add", "sub","linearBurn","colorBurn","colorDodge","linearDodge","vividLight","difference",
     "softLight","hardLight","pinLight","hardMix","exclusion","difference","glow","linearLight","reflect","screen",
 "darken","lighten","screen","overlay"
@@ -351,7 +352,7 @@ cursor.goNext = (out = false) => {
 
     if (cursor.value().length === 1){
         const out_index = codeData.findIndex(item => Array.isArray(item) && item[0] === "out");
-        const max_index = out_index - 2;
+        const max_index = out_index - 1;
         if (refindex >= max_index) return;
     }
 
@@ -525,12 +526,37 @@ const random_param = (item) => {
 
 }
 
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+
 const correct_src = (item, pageIndex) =>{
     if (!item) return item;
-    const ismodorblend = modulate.has(item[0])|| blend.has(item[0]);
-    if (ismodorblend && Array.isArray(item[1]) && item[1][0] === "src"){
-        const curO = ["o0","o1","o2"];
-        return [item[0], ["src", curO[pageIndex]], ...item.slice(2)];
+    const src_options_1 = [
+        ["noise", [0,7],[-0.1,0.1]],
+["osc", [0,2], [-0.25,0.25], [-10,10]],
+["shape", [0,20], [0.1,0.4], [0.01,0.1]],
+["voronoi", [0,10],[0,2],[0,7]]
+]
+
+const src_options_2 = [
+["src", "o2"],
+["src", "s0"],
+["src","o1"],
+["src","o0"]
+]
+    const ismod = modulate.has(item[0]);
+    const isblend = blend.has(item[0]);
+    const randindex = getRandomInt(4);
+
+
+    if (ismod && Array.isArray(item[1]) && item[1][0] === "src"){
+        const src = src_options_1[randindex];
+        return [item[0], src, ...item.slice(2)];
+    }
+    else if (isblend && Array.isArray(item[1]) && item[1][0] === "src"){
+        const src = src_options_2[randindex];
+        return [item[0], src, ...item.slice(2)];
     }
     return item;
 }
@@ -613,6 +639,12 @@ let runCmd = (keystroke) => {
     // const ismod_orblend = modulate.has(item[0]) 
 
     //if (cmd.KEY2){
+    if (cmd.KEY == "A"){
+        //obs keyboard stuff
+    }
+    if (cmd.KEY == "L"){
+        //obs keyboard stuff
+    }
     if (cmd.KEY == "K") {
     cursor.goNext();
     }
@@ -686,9 +718,6 @@ let runCmd = (keystroke) => {
 
 
     function number_change(){
-
-
-
 
         if (typeof cur[curI] !== 'number') return;
         if (cmd.KEY == "GE"){
@@ -774,9 +803,6 @@ let runCmd = (keystroke) => {
         }
         }
         }
-
-        
-
 
         if (sel_type === "src"){
             if (cmd_type === "src")
@@ -990,87 +1016,87 @@ document.onkeydown = async (e) => {
         }
 
     }
-    if (e.key == "ArrowDown" && !e.shiftKey) {
-        // have strategy functions for what next means in different contexts
-        cursor.goNext();
-    }
-    if (e.key == "ArrowUp" && !e.shiftKey) {
-        cursor.goPrev();
-    }
+    // if (e.key == "ArrowDown" && !e.shiftKey) {
+    //     // have strategy functions for what next means in different contexts
+    //     cursor.goNext();
+    // }
+    // if (e.key == "ArrowUp" && !e.shiftKey) {
+    //     cursor.goPrev();
+    // }
 
-    let [cur, curI] = getcurrentref();
+    // let [cur, curI] = getcurrentref();
 
-    if (e.key == "Enter" && !(e.metaKey || e.ctrlKey)) {
-        if (Array.isArray(cur[curI])) {
-            cursor.next((e) => (e.push(0), e));
-        }
-    }
+    // if (e.key == "Enter" && !(e.metaKey || e.ctrlKey)) {
+    //     if (Array.isArray(cur[curI])) {
+    //         cursor.next((e) => (e.push(0), e));
+    //     }
+    // }
 
-    if (e.key == "Escape") {
-        cursor.goUp();
-    }
+    // if (e.key == "Escape") {
+    //     cursor.goUp();
+    // }
 
-    if (e.key == "ArrowUp" && e.shiftKey) {
-        if (typeof cur[curI] == "number") {
-            if (e.shiftKey) cur[curI] += .4;
-            else cur[curI] += .1;
-            updateUI();
-        }
-    }
+    // if (e.key == "ArrowUp" && e.shiftKey) {
+    //     if (typeof cur[curI] == "number") {
+    //         if (e.shiftKey) cur[curI] += .4;
+    //         else cur[curI] += .1;
+    //         updateUI();
+    //     }
+    // }
 
-    if (e.key == "ArrowDown" && e.shiftKey) {
-        if (typeof cur[curI] == "number") {
-            if (e.shiftKey) cur[curI] -= .4;
-            else cur[curI] -= .1;
-            updateUI();
-        }
-    }
+    // if (e.key == "ArrowDown" && e.shiftKey) {
+    //     if (typeof cur[curI] == "number") {
+    //         if (e.shiftKey) cur[curI] -= .4;
+    //         else cur[curI] -= .1;
+    //         updateUI();
+    //     }
+    // }
 
-    if (e.key == "N") {
-        if (Array.isArray(cur)) {
-            cur.splice(curI + 1, 0, 0);
-            updateUI();
-        }
-    }
+    // if (e.key == "N") {
+    //     if (Array.isArray(cur)) {
+    //         cur.splice(curI + 1, 0, 0);
+    //         updateUI();
+    //     }
+    // }
 
-    if (Array.isArray(cur)) {
-        Object.entries(keys).forEach(([key, item]) => {
-            if (e.key == key) {
-                cur.splice(curI + 1, 0, (random_param(correct_src(item,currentO))));
-                updateUI();
-            }
-        });
-    }
+    // if (Array.isArray(cur)) {
+    //     Object.entries(keys).forEach(([key, item]) => {
+    //         if (e.key == key) {
+    //             cur.splice(curI + 1, 0, (random_param(correct_src(item,currentO))));
+    //             updateUI();
+    //         }
+    //     });
+    // }
 
-    if (e.key.toLowerCase() == "y") {
-        buffer = cur[curI];
-    }
+    // if (e.key.toLowerCase() == "y") {
+    //     buffer = cur[curI];
+    // }
 
-    if (e.key.toLowerCase() == "p") {
-        if (buffer && Array.isArray(cur)) {
-            cur.splice(curI + 1, 0, Array.isArray(buffer) ? [...buffer] : buffer);
-            updateUI();
-        }
-    }
+    // if (e.key.toLowerCase() == "p") {
+    //     if (buffer && Array.isArray(cur)) {
+    //         cur.splice(curI + 1, 0, Array.isArray(buffer) ? [...buffer] : buffer);
+    //         updateUI();
+    //     }
+    // }
 
-    if (e.key == "Enter" && (e.metaKey || e.ctrlKey)) {
-        update_page();
-    }
+    // if (e.key == "Enter" && (e.metaKey || e.ctrlKey)) {
+    //     update_page();
+    // }
 
-    if (e.key == "x") {
-        if (Array.isArray(cur)) {
-            buffer = cur[curI];
-            cur.splice(curI, 1);
-            updateUI();
-        }
-    }
+    // if (e.key == "x") {
+    //     if (Array.isArray(cur)) {
+    //         buffer = cur[curI];
+    //         cur.splice(curI, 1);
+    //         updateUI();
+    //     }
+    // }
 
-    if (e.key == "Backspace") {
-        if (Array.isArray(cur)) {
-            cur.splice(curI, 1);
-            updateUI();
-        }
-    }
+    // if (e.key == "Backspace") {
+    //     if (Array.isArray(cur)) {
+    //         cur.splice(curI, 1);
+    //         updateUI();
+    //     }
+    // }
 };
 
 
