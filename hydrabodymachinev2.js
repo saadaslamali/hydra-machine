@@ -10,6 +10,9 @@ let code = `
 	src(s0).out()
 `;
 
+
+let currentline = "";
+
 // let codeData = [
 // 	["src", "s0"],
 //     ["linearBurn","s0"],
@@ -195,13 +198,14 @@ let itemtype = (item) => {
 
 
 
+
 let hydra_code = compile_chain(codeData);
 
 
 function update_page() {
     let initCode = `
     s0.initCam(0);
-    setResolution(1920,1200);`
+    setResolution(1920,1080);`
     let code0 = compile_chain(allO[0]);
     let code1 = compile_chain(allO[1]);
     let code2 = compile_chain(allO[2]);
@@ -312,9 +316,13 @@ let highlight = () => {
     
     let selectedEl = document.querySelector(`*[address='${v.join("-")}']`);
     if (selectedEl){
+        
                 selectedEl.setAttribute("selected", "true");
             selectedEl.scrollIntoView({ block: "center", behavior: "smooth" });
+            currentline = selectedEl.textContent;
+            
     }
+    
 };
 
 cursor.subscribe((v) => {
@@ -326,9 +334,12 @@ cursor.subscribe((v) => {
         if (selected) {
             selected.setAttribute("selected", "true");
             selected.scrollIntoView({ block: "center", behavior: "smooth" });
+            currentline = selected.textContent;
+
         }
 
 });
+
 
 let getcurrentref = () => {
     let curse = cursor.value();
@@ -604,9 +615,11 @@ let initialize_port = async () => {
                 runCmd(cmd);
                 console.log("run command")
                 let [cur, curI] = getcurrentref();
-                console.log(cur[curI])
-                await writer.write(encoder.encode(String(cur[curI]).concat("\n")));
-                console.log("response sent")    
+                // console.log(cur[curI])
+                console.log(currentline);
+                // await writer.write(encoder.encode(String(cur[curI]).concat("\n")));
+                await writer.write(encoder.encode(String(currentline).concat("\n")));
+                console.log("response sent");  
                 } catch (error){
                     console.log("write failed", error);
                 }
@@ -836,6 +849,7 @@ let runCmd = (keystroke) => {
                 if (cursor.value().length === 1){
                     codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
                     updateUI;
+                    cursor.goNext();
                 }
               
                 else {
@@ -879,6 +893,7 @@ let runCmd = (keystroke) => {
                 cmd_mod[1] = random_param(correct_src(item,currentO));
                 codeData.splice(curI + 1, 0, cmd_mod);
                 updateUI();
+                cursor.goNext();
                 //duplicate the sel_type modulate
                 // replace sel_type src with cmd_type src as it's first parameter, add it to next line
             }
@@ -889,6 +904,7 @@ let runCmd = (keystroke) => {
                 ///actually just add it onto the next line
                 codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
                 updateUI();
+                cursor.goNext();
             }
 
             else if (cmd_type === "effect" || cmd_type === "blend"){
@@ -896,6 +912,7 @@ let runCmd = (keystroke) => {
 
             codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
             updateUI();
+            cursor.goNext();
             }
 
             else if (cmd_type === "number"){
@@ -919,6 +936,7 @@ let runCmd = (keystroke) => {
                 cmd_mod[1] = random_param(correct_src(item,currentO));
                 codeData.splice(curI + 1, 0, cmd_mod);
                 updateUI();
+                cursor.goNext();
                 //duplicate the sel_type modulate
                 // replace sel_type src with cmd_type src as it's first parameter, add it to next line
             }
@@ -928,6 +946,7 @@ let runCmd = (keystroke) => {
                 // cur[curI] =random_param(correct_src(item,currentO));
                 codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
                 updateUI();
+                cursor.goNext();
             }
 
             else if (cmd_type === "effect" || cmd_type === "modulate"){
@@ -935,6 +954,7 @@ let runCmd = (keystroke) => {
 
             codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
             updateUI();
+            cursor.goNext();
             }
 
             else if (cmd_type === "number"){
@@ -963,6 +983,7 @@ let runCmd = (keystroke) => {
 
             codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
             updateUI();
+            cursor.goNext();
             }
 
             else if (cmd_type === "effect"){
@@ -970,6 +991,7 @@ let runCmd = (keystroke) => {
 
             codeData.splice(curI + 1, 0, random_param(correct_src(item,currentO)));
             updateUI();
+            cursor.goNext();
             }
 
             else if (cmd_type === "number"){
