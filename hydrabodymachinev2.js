@@ -512,6 +512,8 @@ let keys = {
 
 
 "B": ["system", "deleteline"]
+"M": ["system", "hidecode"]
+
 
 };
 
