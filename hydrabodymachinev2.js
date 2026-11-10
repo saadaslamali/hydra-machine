@@ -511,7 +511,7 @@ let keys = {
 //numbers
 
 
-"B": ["system", "deleteline"]
+"B": ["system", "deleteline"],
 "M": ["system", "hidecode"]
 
 
