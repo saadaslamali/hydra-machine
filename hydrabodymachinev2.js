@@ -13,16 +13,8 @@ let code = `
 
 let currentline = "";
 
-// let codeData = [
-// 	["src", "s0"],
-//     ["linearBurn","s0"],
-// 	["out", "o0"]
-// ];
-//to do: randomness
-//to fix: if cmd and sel type are both modulate, it shouldn't replace, just add the cmd on a new line
-//change: modulate src should be randomized between voronoi, noise, osc, s0, o0, o1, o2
-//change: blends should be randomized between s0,o0-o2 OR only s0?
-//remove some blend modes
+let change_flag1 = 0;
+let change_flag2 = 0;
 let currentO = 0;
 let change_flag = 0;
 let allO = [
@@ -140,35 +132,7 @@ let compile_chain = (chain) => {
     if (!Array.isArray(chain)) throw new Error("should be array");
     return chain.map(compile_node).join(".");
 }
-/*
-"BI": ["blend", ["src", "o0"],[0.25,0.95]],
-"BA": ["mult", ["src", "o0"], [0.1,0.9]],
-"BJ": ["diff", ["src", "o0"],[0.1,0.9]],
-"BL": ["sub", ["src", "o0"], [0.1,0.9]],
-"BK": ["add", ["src", "o0"], [0.1,0.9]],
-"BE": ["linearBurn", ["src","o0"],[0.1,0.9]],
-"BC":["colorBurn", ["src","o0"],[0.1,0.9]],
-"BD":["colorDodge", ["src","o0"],[0.1,0.9]],
-"BF":["linearDodge", ["src","o0"],[0.1,0.9]],
-"BG":["vividLight", ["src","o0"],[0.1,0.9]],
-"BH":["difference", ["src","o0"],[0.1,0.9]],
 
-"GA": ["softLight", ["src", "o0"], [0.1,0.9]],
-"GB": ["hardLight", ["src", "o0"],[0.1,0.9]],
-"GC": ["pinLight", ["src", "o0"], [0.1,0.9]],
-"GD": ["hardMix", ["src", "o0"], [0.1,0.9]],
-"GE": ["exclusion", ["src","o0"],[0.1,0.9]],
-"GF":["difference", ["src","o0"],[0.1,0.9]],
-"GH":["glow", ["src","o0"],[0.1,0.9]],
-"GI":["linearLight", ["src","o0"],[0.1,0.9]],
-"GJ":["reflect", ["src","o0"],[0.1,0.9]],
-"GK":["screen", ["src","o0"],[0.1,0.9]],
-
-"HA": ["darken", ["src", "o0"], [0.1,0.9]],
-"HB": ["lighten", ["src", "o0"],[0.1,0.9]],
-"HC": ["screen", ["src", "o0"], [0.1,0.9]],
-"HD": ["overlay", ["src", "o0"], [0.1,0.9]],
-*/
 
 const src = new Set(["noise","osc","shape","gradient","voronoi", "solid", "s0", "o0", "o1","o2", "src"]);
 const out = new Set(["out"]);
@@ -233,6 +197,8 @@ function updateUI(data = codeData) {
 
     interfaceEl.innerHTML = "";
     interfaceEl.appendChild(dom(d));
+    document.querySelector(".dawg").style.display = 
+        change_flag1 ? "none" : "flex";
     highlight();
 
 
@@ -319,7 +285,7 @@ let highlight = () => {
         
                 selectedEl.setAttribute("selected", "true");
             selectedEl.scrollIntoView({ block: "center", behavior: "smooth" });
-            currentline = selectedEl.textContent;
+           currentline = selectedEl.textContent;
             
     }
     
@@ -334,7 +300,7 @@ cursor.subscribe((v) => {
         if (selected) {
             selected.setAttribute("selected", "true");
             selected.scrollIntoView({ block: "center", behavior: "smooth" });
-            currentline = selected.textContent;
+          currentline = selected.textContent;
 
         }
 
@@ -613,15 +579,16 @@ let initialize_port = async () => {
         for (const e of value){   
             if (e == "\n") {
                 try {
-                console.log("recieved command")
+                // console.log("recieved command")
                 runCmd(cmd);
-                console.log("run command")
-                let [cur, curI] = getcurrentref();
+                // console.log("run command")
+                // let [cur, curI] = getcurrentref();
                 // console.log(cur[curI])
-                console.log(currentline);
+                // console.log(cur[curI]);
                 // await writer.write(encoder.encode(String(cur[curI]).concat("\n")));
                 await writer.write(encoder.encode(String(currentline).concat("\n")));
-                console.log("response sent");  
+                // console.log("response sent");
+                console.log(currentline);  
                 } catch (error){
                     console.log("write failed", error);
                 }
@@ -668,7 +635,18 @@ let runCmd = (keystroke) => {
     let [cur, curI] = getcurrentref();
     // change_flag = 1;
     // const ismod_orblend = modulate.has(item[0]) 
+    if (!/^[a-zA-Z]/.test(cmd.KEY)) {
+   // code       
+    if (typeof cur[curI] !== 'number') return;
+    else {
+        cur[curI] = Number(cmd.KEY);
+        updateUI();
+        update_page();
 
+    }
+}
+
+  
     //if (cmd.KEY2){
     if (cmd.KEY == "A"){
         //obs keyboard stuff
@@ -815,7 +793,7 @@ let runCmd = (keystroke) => {
 
     // if(cursor.value().length == 1){
 
-        if (cmd_type === "system"){
+        if (cmd.KEY == "B"){
             if (sel_type !== "src" && sel_type !=="number" && sel_type !== "out"){
             if (Array.isArray(cur)) {
                 if (itemtype(item) !== "src" ){
@@ -833,6 +811,19 @@ let runCmd = (keystroke) => {
             }
         }
         }
+        }
+
+          if (cmd.KEY == "M"){
+          //  interfaceEl
+          if (change_flag1 == 0){
+           document.querySelector(".dawg").style.display = "none";
+           change_flag1 = 1;
+          }
+          else {
+            document.querySelector(".dawg").style.display = "flex";
+            change_flag1 = 0;
+          }
+          
         }
 
         if (sel_type === "src"){
